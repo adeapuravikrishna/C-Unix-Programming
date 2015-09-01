@@ -1,0 +1,157 @@
+25 25 25 20
+
+radepu - a2
+
+  721 Feb 14 21:34 p1.c
+  402 Feb 14 21:35 p2.c
+  366 Feb 14 21:35 p3.c
+  359 Feb 14 21:35 p4.c
+
+
+p1.c
+---
+> #include <stdio.h>
+> #include <time.h>
+> static const char *const wday[] = {
+> "Sunday", "Monday", "Tuesday", "Wednesday",
+> "Thursday", "Friday", "Saturday", "-unknown-"
+> };
+> int main()
+> {
+> struct tm time_str;
+> time_str.tm_year = 2001 - 1900;
+> time_str.tm_mon = 7 - 1;
+> time_str.tm_mday = 4;
+> time_str.tm_hour= 0;
+> time_str.tm_min= 0;
+> time_str.tm_sec= 1;
+> time_str.tm_isdst = -1;
+> if (mktime(&time_str) == (time_t)(-1))
+> time_str.tm_wday = 7;
+> printf("%s\n", wday[time_str.tm_wday]);
+> time_str.tm_mday= 40;
+> printf ( "Result 1 :The time is: %s", asctime (&time_str) );
+> if (mktime(&time_str) == (time_t)(-1))
+> time_str.tm_wday = 7;
+> printf("%s\n", wday[time_str.tm_wday]);
+> printf ( "Result 2 :The time is: %s", asctime (&time_str) );
+> return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p1 p1.c
+
+
+Run: ./p1
+---
+Wednesday
+Result 1 :The time is: Wed Jul 40 00:00:01 2001
+Thursday
+Result 2 :The time is: Thu Aug  9 00:00:01 2001
+
+
+p2.c
+---
+> #include<stdio.h>
+> #include<time.h>
+> long long function1()
+>   {
+>   struct timespec rt;
+>   clock_gettime(CLOCK_REALTIME, &rt);
+>   long long realtime;
+>   realtime=((rt.tv_sec)*1e6)+(rt.tv_nsec*1e-3);  
+
+ok, but should use long long int constants instead of floating-point 1e6, etc.
+
+> return realtime;
+> }
+> int main()
+> {
+> long long x=function1();
+> printf("TIME(0) is %lld SECONDS \n",(long long)time(0));
+> printf("Realtime is %lld MICROSECONDS \n",x);
+> //secs = 1391340826
+> //usecs = 1391340826323473
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p2 p2.c -D_POSIX_C_SOURCE=199309L -lrt
+
+
+Run: ./p2
+---
+TIME(0) is 1392976625 SECONDS 
+Realtime is 1392976625342200 MICROSECONDS 
+
+
+p3.c
+---
+> #include<string.h>
+> #include<stdlib.h>
+> #include<math.h>
+> #include<stdio.h>
+> int main(int argc, char *argv[])
+> {
+> long long uid = strtoll( "radepu", 0, 36);
+> int temp,i,e;
+> //printf("%lld\n",uid);
+> e= (uid % 246)+10;
+> printf("Encryption key is %d \n",e);
+> for(i=1;i<256;i++)
+> {
+> //printf("%d\n",e);
+> temp=(i*e)%257;
+> if(temp==1)
+> printf("Decryption key is :%d \n",i);
+> }
+> return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p3 p3.c
+
+
+Run: ./p3
+---
+Encryption key is 178 
+Decryption key is :13 
+
+
+p4.c
+---
+> #include <stdio.h>
+> int main( void)
+> {
+>   int c;  // must use int variable with getchar()
+>   while( 1) // until end-of-file
+>   {
+>     c = getchar(); // if it works c will be a value from 0 to 255
+>      if(c==0)
+>      { c=256;
+>       }
+>     c=(c*13)%257;
+>     if(c==256)
+>       {
+>        c=0;
+>       }
+>     if( c < 0) break; // end-of-file
+
+*** check for end-of-file  must come right after getchar before changing c
+
+>     putchar( c);
+>   }
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p4 p4.c
+
+
+Run: ./test4
+---
+Generating new message: fortune | cat -v > plaintext.in
+Encrypting: /vecr/osp/a2/encrypt radepu < plaintext.in > ciphertext
+Decrypting: ./p4 < ciphertext > plaintext.out
+Checking: cmp -s plaintext.in plaintext.out
+
+Your output is correct!
+
+Plaintext: cat plaintext.in
+This life is a test.  It is only a test.  Had this been an actual life, you
+would have received further instructions as to what to do and where to go.

@@ -1,0 +1,162 @@
+25 25 25 25
+
+radepu - a1
+
+  652 Feb 8 17:18 p1.c
+  390 Feb 7 18:18 p2.c
+  193 Feb 7 18:18 p3.c
+  605 Feb 7 18:18 p4.c
+
+
+p1.c
+---
+> #include<stdio.h>
+> #include<limits.h>
+> #define print( format, name) \
+>   printf( #name " = " format "\n", name)
+> int main(void)
+> {
+>    print("%d", CHAR_BIT);
+>    print("%d",MB_LEN_MAX);
+>    print("%i", CHAR_MIN);
+>    print("%d", CHAR_MAX);
+>    print("%d", SCHAR_MIN);
+>    print("%d", SCHAR_MAX);
+>    print("%d", UCHAR_MAX);
+>    print("%d", SHRT_MIN);
+>    print("%d", SHRT_MAX); 
+>    print("%u",USHRT_MAX);
+>    print("%i", INT_MIN);
+>    print("%i", INT_MAX);
+>    print("%u", UINT_MAX);
+>    print("%ld", LONG_MIN);
+>    print("%ld", LONG_MAX);
+>    print("%lu", ULONG_MAX);
+> print( "%lli", LLONG_MAX);
+> print( "%lli", LLONG_MIN);
+> print( "%llu", ULLONG_MAX);
+>   
+>    
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p1 p1.c
+
+
+Run: ./p1
+---
+CHAR_BIT = 8
+MB_LEN_MAX = 16
+CHAR_MIN = -128
+CHAR_MAX = 127
+SCHAR_MIN = -128
+SCHAR_MAX = 127
+UCHAR_MAX = 255
+SHRT_MIN = -32768
+SHRT_MAX = 32767
+USHRT_MAX = 65535
+INT_MIN = -2147483648
+INT_MAX = 2147483647
+UINT_MAX = 4294967295
+LONG_MIN = -2147483648
+LONG_MAX = 2147483647
+ULONG_MAX = 4294967295
+LLONG_MAX = 9223372036854775807
+LLONG_MIN = -9223372036854775808
+ULLONG_MAX = 18446744073709551615
+
+
+p2.c
+---
+> #include<stdio.h>
+> #include<float.h>
+> #define print( format, name) \
+>   printf( #name " = " format "\n", name)
+> int main(void)
+> {
+>  
+>    print("%e", FLT_MIN);
+>    print("%e", FLT_MAX);
+>    print("%g", FLT_EPSILON);
+>    print("%le",  DBL_MIN);
+>    print("%le", DBL_MAX);
+>    print("%le", DBL_EPSILON); 
+>    print("%Lg", LDBL_MIN);
+>    print("%Lg", LDBL_MAX);
+>    print("%Lg", LDBL_EPSILON); 
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p2 p2.c
+
+
+Run: ./p2
+---
+FLT_MIN = 1.175494e-38
+FLT_MAX = 3.402823e+38
+FLT_EPSILON = 1.19209e-07
+DBL_MIN = 2.225074e-308
+DBL_MAX = 1.797693e+308
+DBL_EPSILON = 2.220446e-16
+LDBL_MIN = 3.3621e-4932
+LDBL_MAX = 1.18973e+4932
+LDBL_EPSILON = 1.0842e-19
+
+
+p3.c
+---
+> #include <stdio.h>
+> #include <math.h>
+> #include <errno.h>
+> int main (void)
+> {
+>   double x;
+>    errno=0;x=sqrt(-1);
+> printf("x=%g \n errno=%i",x,errno);
+> if (errno!= 0)
+>         perror("oops failed");
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p3 p3.c
+
+
+Run: ./p3
+---
+oops failed: Numerical argument out of domain
+x=-nan 
+ errno=33
+
+p4.c
+---
+> #include <stdio.h>
+> #include <time.h>
+> #include<limits.h>
+>  
+> int main(void)
+> {
+>   time_t t = 0;
+>   time_t t1 = INT_MAX-1;
+>   time_t t2 = INT_MAX;
+>   time_t t3 = (unsigned) INT_MAX+1;
+>   time_t t4 = -1;
+>   time_t t5 = INT_MIN;
+>   printf( "t = %lli, ctime = %s", (long long)t, ctime(&t));
+>   printf( "t1 = %lli, ctime = %s", (long long)t1, ctime(&t1));
+>   printf( "t2 = %lli, ctime = %s", (long long)t2, ctime(&t2));
+>   printf( "t3 = %lli, ctime = %s", (long long)t3, ctime(&t3));
+>   printf( "t4 = %lli, ctime = %s", (long long)t4, ctime(&t4));
+>   printf( "t5 = %lli, ctime = %s", (long long)t5, ctime(&t5));
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p4 p4.c
+
+
+Run: ./p4
+---
+t = 0, ctime = Wed Dec 31 19:00:00 1969
+t1 = 2147483646, ctime = Mon Jan 18 22:14:06 2038
+t2 = 2147483647, ctime = Mon Jan 18 22:14:07 2038
+t3 = -2147483648, ctime = Fri Dec 13 15:45:52 1901
+t4 = -1, ctime = Wed Dec 31 18:59:59 1969
+t5 = -2147483648, ctime = Fri Dec 13 15:45:52 1901

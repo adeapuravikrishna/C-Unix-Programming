@@ -1,0 +1,330 @@
+20 20 50
+
+radepu - a10
+
+ 1062 May 5 08:33 p1.c
+ 1092 May 5 08:33 p2.c
+ 1231 May 5 00:52 p3.c
+
+
+p1.c
+---
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <errno.h>
+> #include <time.h>
+>  
+>  // global variables
+>  //
+>  int answer, high, low,guess,r;
+>  
+>  // initialize answer and bounds
+>  //
+>  void init( void)
+>  {
+>    answer = 1 + rand() % 100;
+>  
+>  }
+>  
+>  // check guess
+>  //
+>  int dealer( int guess)
+>  {
+>    int r = answer - guess;
+> fprintf( stderr,"dealer:guess = %d\n",guess);
+>  
+>    if( r > 0) return 1; else if( r < 0) return -1; else return 0;
+>  }
+> int player(void)
+> {
+>  do
+>    {
+>      scanf("%d",&guess); 
+
+*** must check scanf return value for EOF or error
+
+>      r = dealer( guess);   
+>      if( r > 0)
+>      {
+>        fprintf(stderr,"dealer: higher\n");
+>        fprintf(stdout,"higher\n");
+>        
+>      }
+>      else if( r < 0)
+>      {
+>        fprintf(stderr,"dealer: lower\n");
+>        fprintf(stdout,"lower\n");
+>      }
+>      else // r == 0
+>      {
+>        fprintf(stderr,"dealer: correct!\n");
+>         fprintf(stdout,"correct\n");
+>      }
+>    }
+>    while( r != 0);
+>  
+>    if( r != 0)
+>    {
+>      fprintf( stdout,"dealer is cheating!\n");
+>    }
+> return 0;
+> } 
+> int main( void)
+>  {
+>    setbuf( stdout, 0);
+>    setbuf(stderr,0);
+>    init();
+>    player();
+>    return 0;
+>  }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p1 p1.c
+
+
+Run: seq 0 100 | ./p1 > p1.out 2>&1 
+---
+
+wc -l p1.out
+---
+255 p1.out
+
+head -10 p1.out
+---
+dealer:guess = 0
+dealer: higher
+higher
+dealer:guess = 1
+dealer: higher
+higher
+dealer:guess = 2
+dealer: higher
+higher
+dealer:guess = 3
+
+tail -10 p1.out
+---
+higher
+dealer:guess = 82
+dealer: higher
+higher
+dealer:guess = 83
+dealer: higher
+higher
+dealer:guess = 84
+dealer: correct!
+correct
+
+
+p2.c
+---
+> #include<stdio.h>
+> #include<stdlib.h>
+> #include<string.h>
+> #include <errno.h>
+> #include<time.h>
+> void dealer();
+> int high=101, low=0,guess=0;
+> void init( void)
+> {   
+>    guess =(low+high)/2;
+>    fprintf(stderr,"player: guess = %d\n",guess);
+> }
+> int player(char answer[100])
+> {     
+>  if(strcmp("h",answer)==0 || strcmp("higher",answer)==0)
+>      {
+>        low = guess;
+>        fprintf(stderr, "player:trying higher\n");
+>        guess=guess+(high-guess)/2;
+>        fprintf(stderr,"Player guess=%d\n",guess);
+>      }
+>     else if(strcmp("l",answer)==0 || strcmp("lower",answer)==0)
+>      {
+>        high = guess;
+>        fprintf(stderr, "player:trying lower\n");
+>        guess=guess-(guess-low)/2;
+>        fprintf(stderr,"Player guess=%d\n",guess);
+>      }
+>      else if(strcmp("c",answer)==0 || strcmp("correct",answer)==0)
+>      {
+>        fprintf(stderr, "player:correct!\n"); exit(0);
+>      }     
+> return 0;
+> }
+> void dealer()
+> {
+> fprintf(stdout,"%d\n",guess);
+> char answer[100];
+> do{
+> scanf("%s",answer); 
+
+*** must check scanf return value for EOF or error
+
+> player (answer);
+> fprintf(stdout,"%d\n",guess);
+> }while(1);
+> }
+> int main()
+> {
+> setbuf( stdout, 0);
+> init(); 
+> dealer();
+> return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p2 p2.c
+
+
+Run: ./p2 < lower > p2.out 2>&1 
+---
+Killing runaway process...
+
+*** runaway process
+
+
+wc -l p2.out
+---
+125483 p2.out
+
+head -10 p2.out
+---
+player: guess = 50
+50
+player:trying lower
+Player guess=25
+25
+player:trying lower
+Player guess=13
+13
+player:trying lower
+Player guess=7
+
+tail -10 p2.out
+---
+1
+player:trying lower
+Player guess=1
+1
+player:trying lower
+Player guess=1
+1
+player:trying lower
+Player guess=1
+1
+
+Run: /vecr/osp/a10/pipe
+---
+player: guess = 50
+dealer:guess = 50
+dealer: higher
+player:trying higher
+Player guess=75
+dealer:guess = 75
+dealer: higher
+player:trying higher
+Player guess=88
+dealer:guess = 88
+dealer: lower
+player:trying lower
+Player guess=82
+dealer:guess = 82
+dealer: higher
+player:trying higher
+Player guess=85
+dealer:guess = 85
+dealer: lower
+player:trying lower
+Player guess=84
+dealer:guess = 84
+dealer: correct!
+player:correct!
+
+
+p3.c
+---
+> // test fork/execlp/pipe
+> //
+> // run with args: ./p1 ./p2, same as: ./p1 | ./p2
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <string.h>
+> #include <errno.h>
+> #include <unistd.h>
+> #include <sys/types.h>
+> // print error message and exit
+> //
+> void error( const char msg[])
+> {
+>   fprintf( stderr, "%s", msg);
+>   if( errno) fprintf( stderr, ": %s", strerror( errno));
+>   fprintf( stderr, "\n");
+>   exit(1);
+> }
+> int main()
+> {
+>   pid_t pid;
+>   int pipefd[2], pipefd1[2];
+>   char *prog1, *prog2;
+>   prog1 ="./p2";
+>   prog2 = "./p1";
+>  // create pipe
+>  //
+>   if( pipe( pipefd) < 0) error( "pipe");
+>   if( pipe( pipefd1) < 0) error( "pipe");
+>  // create child process
+>  //
+>   if( (pid = fork()) < 0) error( "fork");
+>   if( pid) // parent
+>   {
+>     if( dup2( pipefd[1], 1) < 0) error( "dup2");
+>     close( pipefd[0]);
+>     close( pipefd[1]);
+>     if( dup2( pipefd1[0], 0) < 0) error( "dup2");
+>     close( pipefd1[0]);
+>     close( pipefd1[1]);
+>     execlp( prog1, prog1, 0);
+>     error( prog1);
+>   }
+>   else // child
+>   {
+>     if( dup2( pipefd[0], 0) < 0) error( "dup2");
+>     close( pipefd[0]);
+>     close( pipefd[1]);
+>     if( dup2( pipefd1[1], 1) < 0) error( "dup2");
+>     close( pipefd1[0]);
+>     close( pipefd1[1]);
+>     execlp( prog2, prog2, 0);
+>     error( prog2);
+>   }
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p3 p3.c
+
+
+Run: ./p3 ./p1 ./p2
+---
+player: guess = 50
+dealer:guess = 50
+dealer: higher
+player:trying higher
+Player guess=75
+dealer:guess = 75
+dealer: higher
+player:trying higher
+Player guess=88
+dealer:guess = 88
+dealer: lower
+player:trying lower
+Player guess=82
+dealer:guess = 82
+dealer: higher
+player:trying higher
+Player guess=85
+dealer:guess = 85
+dealer: lower
+player:trying lower
+Player guess=84
+dealer:guess = 84
+dealer: correct!
+player:correct!

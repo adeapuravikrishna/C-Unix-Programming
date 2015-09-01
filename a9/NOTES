@@ -1,0 +1,212 @@
+50 40
+
+radepu - a9
+
+radepu/a9
+---
+ 1245 Apr 22 22:18 p1.c
+ 1846 Apr 22 22:18 p2.c
+ 1689 Apr 21 11:05 p3.c - just a copy of notes/w11/string_llist.c 
+
+radepu.OLD/a9
+---
+ls: cannot access p2.c: No such file or directory
+ 1156 Apr 21 01:24 p1.c
+    0 Apr 20 20:30 p3.c
+
+first and last updates
+---
+Fri Apr 18 07:35:09 EDT 2014 "radepu" 71.230.28.223 443 osp POST update a9 p1.c 
+Tue Apr 22 22:18:01 EDT 2014 "radepu" 71.230.28.223 443 osp POST update a9 p1.c 
+---
+Mon Apr 21 08:57:07 EDT 2014 "radepu" 71.230.28.223 443 osp POST update a9 p2.c 
+Tue Apr 22 22:18:18 EDT 2014 "radepu" 71.230.28.223 443 osp POST update a9 p2.c 
+---
+
+
+p1.c
+---
+> #include <sys/types.h>
+> #include <sys/stat.h>
+> #include <sys/param.h>
+> #include <dirent.h>
+> #include <stdio.h>
+> #include <string.h>
+> #include<stdlib.h>
+> int dir_search(const char *root, char *dir)
+> {
+>   struct stat sbuf;
+>   char *path = malloc(strlen(dir) + strlen(root) + 2);
+>   sprintf(path, "%s/%s", root, dir);    //sends formatted output to a string pointed to 
+>   stat(path, &sbuf);
+>   if(S_ISDIR(sbuf.st_mode))
+>     printf("d\t");
+>   else
+>     printf("\t");
+>   printf("%lu\t%s\n", (unsigned long) sbuf.st_size, path);
+>   return S_ISDIR(sbuf.st_mode);
+> }
+> void scan(const char *dir)
+> {
+>   DIR *dp = opendir(dir);
+>   if( dp == NULL) { perror( dir); return; }
+>   struct dirent *de;
+>   while((de = readdir(dp)))
+>   {
+>   char *entry_name = de->d_name;
+>     if(!strcmp(".", entry_name) || !strcmp("..", entry_name))
+>       continue;
+>     if(dir_search(dir, entry_name))     //recursively scanning directories
+>     {
+>      char *next = malloc(strlen(dir) + strlen(entry_name) + 2);
+
+essentially the same malloc was done in dir_search(), and never free'd
+
+>       sprintf(next, "%s/%s", dir, entry_name);  ////sends formatted output to a string pointed to
+>       scan(next);
+>       free(next);
+>     }
+>   }
+>   closedir(dp);
+> }
+> int main(int argc, char *argv[])
+> {
+>   if(argc > 1)
+>     for(int i = 1; i < argc; ++i)
+>       scan(argv[i]);
+>   else
+>     scan(".");
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p1 p1.c
+
+
+Run: ./p1 /vecr/osp/a9
+---
+	524	/vecr/osp/a9/j
+d	4096	/vecr/osp/a9/xyz
+	3	/vecr/osp/a9/xyz/a
+d	4096	/vecr/osp/a9/b
+	17375	/vecr/osp/a9/b/c
+d	4096	/vecr/osp/a9/b/d
+	17375	/vecr/osp/a9/b/d/fg
+	3	/vecr/osp/a9/b/d/e
+	3	/vecr/osp/a9/aa
+
+
+p2.c
+---
+> #include <sys/types.h>
+> #include <sys/stat.h>
+> #include <sys/param.h>
+> #include <dirent.h>
+> #include <stdio.h>
+> #include <string.h>
+> #include <stdlib.h>
+> typedef struct element { char *str; double d; struct element *next; } E;
+> E *s = NULL; // the stack
+> void list( void)
+> {
+> E *u=NULL;
+>   printf( "stack:\n");
+>   for( E *p = s; p != 0; p = p->next )
+> {
+> double l;
+> printf("%g   %s",p->d,p->str);
+> u=p->next;
+> if(u)
+> {
+> l=p->d;
+> while(u->d==l)
+> {
+> printf("\t%s\t",u->str);
+
+*** for each file name printed, need to mark it somehow,
+e.g. another field in the struct, so it won't be printed again
+
+> u=u->next;
+> }
+> printf("\n");
+>  }
+> }}
+> char *new_str( char *str)
+> {
+>   char *p = malloc( strlen(str) + 1);
+>   if( p) strcpy( p, str);
+>  
+>   return p;
+> }
+> E *new_E( char *str,double du)
+> {
+> E *e=malloc( sizeof(E));
+>   if( e == NULL) abort();
+>   e->str =str;
+>   e->d=du;
+> return e;
+> }
+> void push( char *str,double d)
+> {
+>   E *p = new_E( str,d);
+>   p->next = s; // insert p at head of the list
+>   s = p;
+> }
+> int dir_search(const char *root, char *dir)
+> {
+>   struct stat sbuf;
+>   char *path = malloc(strlen(dir) + strlen(root) + 2);
+>   sprintf(path, "%s/%s", root, dir);    
+>   stat(path, &sbuf);
+>   if(!(S_ISDIR(sbuf.st_mode)))
+> {
+> double z=(unsigned long) sbuf.st_size;
+>  push(path,z);
+> } 
+>   return S_ISDIR(sbuf.st_mode);
+> }
+> void scan(const char *dir)
+> {
+>   DIR *dp = opendir(dir);
+>   if( dp == NULL) { perror( dir); return; }
+>   struct dirent *de;
+>   while((de = readdir(dp)))
+>   {
+>   char *entry_name = de->d_name;
+>     if(!strcmp(".", entry_name) || !strcmp("..", entry_name))
+>       continue;
+>     if(dir_search(dir, entry_name))     //recursively scanning directories
+>     {
+>      char *next = malloc(strlen(dir) + strlen(entry_name) + 2);
+>       sprintf(next, "%s/%s", dir, entry_name);  //sends formatted output to a string pointed to
+>       scan(next);
+>     //  free(next);
+>     }
+>   }
+>   closedir(dp);
+> }
+> int main(int argc, char *argv[])
+> {
+>   if(argc > 1)
+>     for(int i = 1; i < argc; ++i)
+>       scan(argv[i]);
+>   else
+>     scan(".");
+> list();
+>   return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p2 p2.c
+
+
+Run: ./p2 /vecr/osp/a9
+---
+stack:
+3   /vecr/osp/a9/aa	/vecr/osp/a9/b/d/e	
+3   /vecr/osp/a9/b/d/e
+17375   /vecr/osp/a9/b/d/fg	/vecr/osp/a9/b/c	
+17375   /vecr/osp/a9/b/c
+3   /vecr/osp/a9/xyz/a
+524   /vecr/osp/a9/j
+
+*** output is not correct
+

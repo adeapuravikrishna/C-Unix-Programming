@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include<string.h>
+#include<stdlib.h>
+void scan(const char *dir)		// process one directory
+{
+printf("started scan\n");
+  DIR *dp;
+  struct dirent *de;
+  struct stat sbuf;
+  dp = opendir(dir);
+  char * tempPath = "";
+  if(dp == NULL)
+  {
+printf("null block hi\t");
+    perror(dir);
+    return;
+  }
+  while(1)
+  {
+printf("jaffa\n");
+    de = readdir(dp);
+    if(de == NULL)
+      break;
+         
+     tempPath = malloc(sizeof(tempPath));
+     strcpy(tempPath, dir);
+     strcat(tempPath, de->d_name);
+    if(stat(tempPath, &sbuf))
+    {
+printf("kufli\n");
+      perror(de->d_name);
+      continue;
+    }
+    if(S_ISDIR(sbuf.st_mode))
+    {
+printf("nomad\n");
+    // if(strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+    // continue;
+      printf("d\t");
+    }
+    else{printf("idiot\n");
+      printf("\t");}
+      printf("%lu\t%s\n", (unsigned long) sbuf.st_size,tempPath );
+//scan(tempPath);
+  }
+  closedir(dp);
+}
+int main(int argc, char *argv[])
+{
+  if(argc > 1)
+    for(int i = 1; i < argc; ++i)
+      scan(argv[i]);
+  else
+    scan(".");
+  return 0;
+}

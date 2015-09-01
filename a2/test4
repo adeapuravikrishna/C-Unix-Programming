@@ -1,0 +1,40 @@
+#! /opt/bin/dash
+
+PATH="/opt/bin:/bin:/usr/bin"
+export PATH
+
+D="/vecr/osp/a2"
+
+cmd="fortune | cat -v > plaintext.in"
+echo "Generating new message: $cmd"
+eval $cmd
+
+cmd="$D/encrypt $user < plaintext.in > ciphertext"
+echo "Encrypting: $cmd"
+eval $cmd
+
+cmd="./p4 < ciphertext > plaintext.out"
+echo "Decrypting: $cmd"
+eval $cmd
+
+cmd="cmp -s plaintext.in plaintext.out"
+echo "Checking: $cmd"
+eval $cmd
+
+r="$?"
+
+if [ "0" = "$r" ]; then
+  echo "\nYour output is correct!\n"
+  cmd="cat plaintext.in"
+  echo "Plaintext: $cmd"
+  eval $cmd
+else
+  echo "\nYour output is wrong.\n"
+  cmd="cat plaintext.in"
+  echo "Correct plaintext: $cmd"
+  eval $cmd
+  cmd="cat -v plaintext.out"
+  echo "---\nYour plaintext: $cmd"
+  eval $cmd
+fi
+

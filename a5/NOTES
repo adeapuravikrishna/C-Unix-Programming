@@ -1,0 +1,191 @@
+45 50
+
+radepu - a5
+
+ 1104 Mar 16 22:47 p1.sh
+ 1008 Mar 16 22:06 p2.c
+
+
+p1.sh
+---
+> read data
+> echo '<html><head><title>a5/p1.sh</title></head>
+> <body bgcolor=white text=black>
+> <form method=POST action="/prog/osp?a5+p1.sh">
+> Data: <input type=submit name=data value="sine">
+> <input type=submit name=data value="sum">
+> <input type=submit name=data value="product"><br>
+> View: <input type=submit name=data value="data">
+> <input type=submit name=data value="avg">
+> <input type=submit name=data value="peaks">
+> <input type=submit name=data value="avg|peaks">
+> <input type=submit name=data value="dft">
+> <input type=submit name=data value="dft|peaks">'
+> #echo "<br>data = \"$data\""
+> case "$data" in
+>     sine)../a4/p1>p1.out ;;
+>      sum)../a4/p1 s>p1.out;;
+>  product)../a4/p1 p>p1.out;;
+> esac
+> if [ "$data"=true ]
+> then
+> case "$data" in
+>     data)plot < p1.out > plot.gif;;
+>      avg)../a4/p2 < p1.out | plot > plot.gif;;
+>    peaks)../a4/p3<p1.out | plot > plot.gif;;
+> "avg|peaks")../a4/p2 < p1.out | ../a4/p3 | plot > plot.gif;;
+> dft)dft 2 < p1.out | plot > plot.gif;;
+> "dft|peaks")dft 2 < p1.out | ../a4/p3 | plot > plot.gif;;
+
+*** need default case, * or ""
+
+> esac
+> fi
+> echo "<p><img src=\"/prog/osp?view+a5+plot.gif\">"
+> echo '</form></body></html>'
+
+*** also supposed to produce sine plot when first run, with no buttons pressed
+
+*** data buttons don't produce plots
+
+
+
+Run: dash ./p1.sh
+<html><head><title>a5/p1.sh</title></head>
+<body bgcolor=white text=black>
+<form method=POST action="/prog/osp?a5+p1.sh">
+Data: <input type=submit name=data value="sine">
+<input type=submit name=data value="sum">
+<input type=submit name=data value="product"><br>
+View: <input type=submit name=data value="data">
+<input type=submit name=data value="avg">
+<input type=submit name=data value="peaks">
+<input type=submit name=data value="avg|peaks">
+<input type=submit name=data value="dft">
+<input type=submit name=data value="dft|peaks">
+<p><img src="/prog/osp?view+a5+plot.gif">
+</form></body></html>
+
+
+p2.c
+---
+> #include<stdio.h>
+> #include<stdlib.h>
+> #include<math.h>
+> #include <gsl/gsl_poly.h>
+> int main()
+> {
+> double x,y,z,a, b, c, y0, y1, y2;
+> int i,count;
+> x=-2;
+> for(i=1;i<=101;i++)
+> {
+> a=0;
+> b=-3*x;
+> c=x*x*x;
+> count = gsl_poly_solve_cubic( a, b, c, &y0, &y1, &y2);
+
+*** should consider using indent
+
+> if(count!=1)
+> {
+> break;
+> }
+> else
+> {
+> printf("%lf %lf\n",x,y0);
+> }
+> x=x+0.04;
+> }
+> y=x;
+> for(i=1;i<=101;i++)
+> {
+> a=0;
+> b=-3*x;
+> c=x*x*x;
+> count = gsl_poly_solve_cubic( a, b, c, &y0, &y1, &y2);
+> if(count!=3)
+> {
+> break;
+> }
+> else
+> {
+> printf("%lf %lf\n",x,y1);
+> }
+> x=x+0.04;
+> }
+> z=x-0.04;
+> for(i=1;i<=101;i++)
+> {
+> a=0;
+> b=-3*z;
+> c=z*z*z;
+> count = gsl_poly_solve_cubic( a, b, c, &y0, &y1, &y2);
+> if(count!=3)
+> {
+> break;
+> }
+> else
+> {
+> printf("%lf %lf\n",z,y2);
+> }
+> z=z-0.04;
+> }
+> for(i=1;i<=101;i++)
+> {
+> a=0;
+> b=-3*y;
+> c=y*y*y;
+> count = gsl_poly_solve_cubic( a, b, c, &y0, &y1, &y2);
+> if(count!=3)
+> {
+> break;
+> }
+> else
+> {
+> printf("%lf %lf\n",y,y0);
+> }
+> y=y+0.04;
+> }
+> for(i=1;i<=101;i++)
+> {
+> a=0;
+> b=-3*y;
+> c=y*y*y;
+> count = gsl_poly_solve_cubic( a, b, c, &y0, &y1, &y2);
+> if(y>2)
+> {
+> break;
+> }
+> else
+> {
+> printf("%lf %lf\n",y,y0);
+> }
+> y=y+0.04;
+> }
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lgsl -lgslcblas -lm -o p2 p2.c
+
+
+Run: ./p2 > p2.out
+
+p2.out has 180 lines
+
+first 5 lines:
+
+-2.000000 1.107148
+-1.960000 1.071383
+-1.920000 1.035843
+-1.880000 1.000541
+-1.840000 0.965490
+
+last 5 lines:
+
+1.800000 -2.743334
+1.840000 -2.785091
+1.880000 -2.826769
+1.920000 -2.868373
+1.960000 -2.909906
+
+Run: plot < p2.out > p2.gif

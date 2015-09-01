@@ -1,0 +1,95 @@
+*** p1.c.OLD	2014-04-21 01:24:37.000000000 -0400
+--- p1.c	2014-04-22 22:18:01.000000000 -0400
+***************
+*** 1,50 ****
+- #include <stdio.h>
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <dirent.h>
+  #include<string.h>
+  #include<stdlib.h>
+! void scan(const char *dir)		// process one directory
+  {
+- printf("started scan\n");
+-   DIR *dp;
+-   struct dirent *de;
+    struct stat sbuf;
+!   dp = opendir(dir);
+!   char * tempPath = "";
+!   if(dp == NULL)
+!   {
+! printf("null block hi\t");
+!     perror(dir);
+!     return;
+    }
+!   while(1)
+    {
+! printf("jaffa\n");
+!     de = readdir(dp);
+!     if(de == NULL)
+!       break;
+!          
+!      tempPath = malloc(sizeof(tempPath));
+!      strcpy(tempPath, dir);
+!      strcat(tempPath, de->d_name);
+!     if(stat(tempPath, &sbuf))
+      {
+! printf("kufli\n");
+!       perror(de->d_name);
+        continue;
+!     }
+!     if(S_ISDIR(sbuf.st_mode))
+      {
+! printf("nomad\n");
+!     // if(strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+!     // continue;
+!       printf("d\t");
+      }
+-     else{printf("idiot\n");
+-       printf("\t");}
+-       printf("%lu\t%s\n", (unsigned long) sbuf.st_size,tempPath );
+- //scan(tempPath);
+    }
+    closedir(dp);
+  }
+--- 1,40 ----
+  #include <sys/types.h>
+  #include <sys/stat.h>
++ #include <sys/param.h>
+  #include <dirent.h>
++ #include <stdio.h>
+  #include <string.h>
+  #include<stdlib.h>
+! int dir_search(const char *root, char *dir)
+  {
+    struct stat sbuf;
+!   char *path = malloc(strlen(dir) + strlen(root) + 2);
+!   sprintf(path, "%s/%s", root, dir);	//sends formatted output to a string pointed to 
+!   stat(path, &sbuf);
+!   if(S_ISDIR(sbuf.st_mode))
+!     printf("d\t");
+!   else
+!     printf("\t");
+!   printf("%lu\t%s\n", (unsigned long) sbuf.st_size, path);
+!   return S_ISDIR(sbuf.st_mode);
+  }
+! void scan(const char *dir)
+  {
+!   DIR *dp = opendir(dir);
+!   if( dp == NULL) { perror( dir); return; }
+!   struct dirent *de;
+!   while((de = readdir(dp)))
+    {
+!   char *entry_name = de->d_name;
+!     if(!strcmp(".", entry_name) || !strcmp("..", entry_name))
+        continue;
+!     if(dir_search(dir, entry_name))	//recursively scanning directories
+      {
+!      char *next = malloc(strlen(dir) + strlen(entry_name) + 2);
+!       sprintf(next, "%s/%s", dir, entry_name);	////sends formatted output to a string pointed to
+!       scan(next);
+!       free(next);
+      }
+    }
+    closedir(dp);
+  }

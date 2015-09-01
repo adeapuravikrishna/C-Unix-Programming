@@ -1,0 +1,153 @@
+25 25 20 25
+
+original: 25 25 20 0
+
+radepu - a3
+
+  528 Feb 21 19:53 p1.c
+  130 Feb 21 19:54 p1.sh
+  559 Feb 21 19:53 p2.c
+    0 Feb 21 19:53 p3.sh
+
+update Fri Mar  7 05:23:37 EST 2014
+p3.sh was in p2.sh and was correct
+
+
+p1.c
+---
+> #include<time.h>
+> #include<stdio.h>
+> #include<stdlib.h>
+> void function1(long long f)
+> {
+> long long x=time(0);
+> long long y;
+
+actually only need long for regular time values
+
+> y=f-x;
+> int z=(int)y;
+> int days=z/86400;
+> int temp1=z%86400;
+> int hours=temp1/3600;
+> int minutes=(temp1%3600)/60;
+> int seconds=(temp1%3600)%60;
+> printf("%d days, %d hours, %d minutes, %d seconds \n ",days,hours,minutes,seconds);
+> }
+> int main(int argc, char *argv[])
+> {
+> if(argc==1)
+> {
+> function1(1393045199);
+> }
+> else if(argc==2)
+> {
+> long long x=atol(argv[1]);
+> function1(x);
+> }
+> else
+> printf("Too many arguments \n");
+> return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p1 p1.c
+
+
+Run: ./p1
+---
+-11 days, -8 hours, -55 minutes, -25 seconds 
+ 
+Run: ./p1 1393624800
+---
+-4 days, -15 hours, -55 minutes, -24 seconds 
+ 
+
+p1.sh
+---
+> #! /bin/dash
+> for i in `seq 10`;
+>  do 
+> false || echo "The time left until spring break :" << echo `./p1 1393624800` && sleep 1
+
+kind of overkill there, but ok.
+
+could be just: echo "The time left...: `./p1 1393624800`"; sleep 1
+
+> done
+
+Run: /bin/dash ./p1.sh
+---
+The time left until spring break : -4 days, -15 hours, -55 minutes, -24 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -25 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -26 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -27 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -28 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -29 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -30 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -31 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -32 seconds
+The time left until spring break : -4 days, -15 hours, -55 minutes, -33 seconds
+
+
+p2.c
+---
+> #include <stdio.h>
+> #include <time.h>
+> #include <stdlib.h>
+> int dealer(int RandomNum)
+> {
+> int guess;
+> int low=0,
+> high=101;
+> while(1)
+> {
+> guess=(high+low)/2;
+> if (guess==RandomNum)
+> {
+>    
+> printf("guess = %d, correct! \n",guess);
+>  
+>   return 0;
+> }
+> else if(guess<RandomNum)
+> {
+>  
+>  printf("guess = %d, lower! \n",guess);
+>   
+>  low=guess;
+> }
+> else if(guess>RandomNum)
+> {
+>  
+>   printf("guess = %d, higher! \n",guess);
+>  
+>   high=guess; 
+>   }
+> }
+> }
+> int main()
+> {
+> srand(time(0));
+> unsigned RandomNum = (rand() % 100)+1;
+> //printf("dealer number is %d\n",RandomNum);
+> dealer(RandomNum);
+
+*** assignment said: "Use a function to implement the dealer checking the player's guess"
+
+*** and: "Implement the player in the main program."
+
+your dealer function is also doing the player, which is supposed to
+be in the main program
+
+> return 0;
+> }
+
+Compile: gcc -std=c99 -pedantic -Wall -g -lm -o p2 p2.c
+
+
+Run: ./p2
+---
+guess = 50, higher! 
+guess = 25, lower! 
+guess = 37, lower! 
+guess = 43, correct! 
